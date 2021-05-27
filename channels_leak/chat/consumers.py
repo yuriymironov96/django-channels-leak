@@ -1,20 +1,22 @@
 import json
-from channels.generic.websocket import AsyncWebsocketConsumer
-from channels.exceptions import StopConsumer
-
-import tracemalloc
 import logging
+import tracemalloc
 
+from channels.generic.websocket import AsyncWebsocketConsumer
+from pympler import asizeof
+from pympler.classtracker import ClassTracker
 
 logger = logging.getLogger("websocket-memory")
-
-
-from pympler import tracker, summary, muppy
-tr = tracker.SummaryTracker()
+class_tracker = ClassTracker()
+counter = 0
 
 class ChatConsumer(AsyncWebsocketConsumer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.set_layer_tracker = False
+
     async def connect(self):
-        print("connect")
+        global counter
         # snapshot = tracemalloc.take_snapshot()
         # top_stats = snapshot.statistics("lineno")
         # top_stats = [
@@ -22,10 +24,20 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # ]
         # for stat in top_stats[:25]:
         #     logger.error("[TRACE] " + str(stat))
-        from pympler import asizeof
-
         # print("diff")
-        # tr.print_diff()
+        if not self.set_layer_tracker:
+            class_tracker.track_object(self.channel_layer)
+            self.set_layer_tracker = True
+        counter += 1
+        if counter % 10 == 0:
+            print("================: Counter divisible by 10, snapshotting")
+            class_tracker.create_snapshot(f'Handled {counter} connections')
+        if counter % 50 == 0:
+            print("================: Counter divisible by 50, printing stats")
+            class_tracker.stats.print_stats()
+            class_tracker.stats.print_summary()
+            print("================: Done printing tracker stats")
+            print(f"ChatConsumer size: {asizeof.asized(self.channel_layer).format()}")
         # print("total")
         # summary.print_(summary.summarize(muppy.get_objects()))
 
@@ -51,6 +63,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
         print("disconnect")
         # raise StopConsumer
+        # issue1703: Attempted fix, seems to help, but a dirty solve
+        self.channel_layer.receive_buffer.pop(self.channel_name, "")
 
     # Receive message from WebSocket
     async def receive(self, text_data):

@@ -11,10 +11,16 @@ You will need a backend for channels_layer - `Redis` or `Rabbitmq`. Repo include
 All the dependencies can be installed using `Poetry`, they also include debug libraries like `Pympler`.
 
 ### Setup
+#### Local Execution
 
 - Activate your local environemnt;
 - Go to `<project_root>/channels_leak`;
 - Run `daphne channels_leak.asgi:application`;
+
+#### Containerized Execution
+- Alternatively assuming you have a Docker, docker-compose environment simply execute `docker-compose up -d` at the root of this project.
+- Should you wish to reproduce in uvicorn, uncomment that section of the `docker-compose.yml` file
+- Should you wish to reproduce using an amqp broker, one of those as also available in `docker-compose.yml`
 
 ## Steps to reproduce
 

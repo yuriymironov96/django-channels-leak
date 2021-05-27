@@ -130,7 +130,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],
+            "hosts": [("redis-host", 6379)],
         },
     },
 }
@@ -140,7 +140,7 @@ CHANNEL_LAYERS = {
 #     "default": {
 #         "BACKEND": "channels_rabbitmq.core.RabbitmqChannelLayer",
 #         "CONFIG": {
-#             "host": "amqp://guest:guest@127.0.0.1/",
+#             "host": "amqp://guest:guest@amqp-host/",
 #             # "ssl_context": ... (optional)
 #         },
 #     }

@@ -1,0 +1,37 @@
+version: "3.4"
+
+x-websocketserver-abstract: &websocketserver
+  build: .
+  working_dir: /code/channels_leak
+  depends_on:
+    - redis-host
+    - amqp-host
+  volumes:
+    - .:/code:rw,delegated
+    -  ./hotfixes/channels_redis/core.py:/root/.cache/pypoetry/virtualenvs/django-channels-leak-MATOk_fk-py3.9/lib/python3.9/site-packages/channels_redis/core.py:rw,delegated
+
+services:
+  daphne:
+    <<: *websocketserver
+    command: poetry run daphne -b 0.0.0.0 -p 8000 channels_leak.asgi:application
+    ports:
+      - 8000:8000
+#   uvicorn:
+#     <<: *websocketserver
+#     command: poetry run gunicorn -w 8 --bind=0.0.0.0:8000 channels_leak.asgi:application -k uvicorn.workers.UvicornWorker
+#     ports:
+#         - 8001:8000
+
+
+  redis-host:
+    image: redis:5.0.10-alpine
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+  amqp-host:
+    image: rabbitmq:3.7.13-management-alpine
+    # ports:
+    #   - 5672:5672
+    #   - 15672:15672
+    # volumes:
+    #   - rabbithole:/var/lib/rabbitmq
