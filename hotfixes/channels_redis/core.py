@@ -423,7 +423,7 @@ class RedisChannelLayer(BaseChannelLayer):
                     except asyncio.CancelledError:
                         # Ensure all tasks are cancelled if we are cancelled.
                         # Also see: https://bugs.python.org/issue23859
-                        del self.receive_buffer[channel]
+                        self.receive_buffer.pop(channel, "")  # HOTFIX(issue1703): handle channel being removed already
                         for task in tasks:
                             if not task.cancel():
                                 assert task.done()
@@ -475,7 +475,7 @@ class RedisChannelLayer(BaseChannelLayer):
                                 self.receive_buffer[message_channel].put_nowait(message)
                             message = None
                         except Exception:
-                            del self.receive_buffer[channel]
+                            self.receive_buffer.pop(channel, "") # HOTFIX(issue1703): handle channel being removed already
                             raise
                         finally:
                             self.receive_lock.release()
@@ -486,7 +486,7 @@ class RedisChannelLayer(BaseChannelLayer):
                     message = self.receive_buffer[channel].get_nowait()
 
                 if self.receive_buffer[channel].empty():
-                    del self.receive_buffer[channel]
+                    self.receive_buffer.pop(channel, "") # HOTFIX(issue1703): handle channel being removed already
                 return message
 
             finally:

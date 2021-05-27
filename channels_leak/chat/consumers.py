@@ -63,6 +63,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
         print("disconnect")
         # raise StopConsumer
+        # issue1703: Attempted fix, seems to help, but a dirty solve
+        self.channel_layer.receive_buffer.pop(self.channel_name, "")
 
     # Receive message from WebSocket
     async def receive(self, text_data):
