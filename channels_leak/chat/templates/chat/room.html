@@ -4,18 +4,26 @@
   <head>
     <meta charset="utf-8" />
     <title>Chat Room</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
   </head>
   <body>
     <textarea id="chat-log" cols="100" rows="20"></textarea><br />
     <input id="chat-message-input" type="text" size="100" /><br />
     <input id="chat-message-submit" type="button" value="Send" />
     {{ room_name|json_script:"room-name" }}
+    <script
+      src="https://cdn.rawgit.com/joewalnes/reconnecting-websocket/master/reconnecting-websocket.min.js"
+      integrity="sha384-FtJyC+/3fgtPbqlacLHdGwBrmPjKoYBsiqNF5/BEprsnIXB4xtXLCJRx7Xx+TWKP"
+      crossorigin="anonymous"
+    ></script>
+
     <script>
       const roomName = JSON.parse(document.getElementById('room-name').textContent);
 
-      const chatSocket = new WebSocket(
+      const chatSocket = new ReconnectingWebSocket(
         'ws://' + window.location.host + '/ws/chat/' + roomName + '/',
       );
+      setTimeout("location.reload(true);", 2000);
 
       chatSocket.onmessage = function (e) {
         const data = JSON.parse(e.data);
